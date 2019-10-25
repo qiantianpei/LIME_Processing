@@ -1,35 +1,45 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <iostream>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <memory>
 #include <lime.h>
+#include <iostream>
+#include <fstream>
+#include <jsoncpp/json/json.h>
+#include <string>
+
+using namespace std;
+using namespace Json;
 
 int main()
 {
-    cv::Mat img_in = cv::imread("../test/data/3.png"),img_out;
+    ifstream ifs("/home/tianpei/workspace/data_local/us/us_test_1.1.json");
+    Reader reader;
+    Value obj;
+    reader.parse(ifs, obj);
+    string data_path = "/home/tianpei/workspace/data_local/us/", img_path;
 
-    //cv::cvtColor(img_in, img_in, cv::COLOR_BGR2GRAY);
-    //std::cout<<"img_in channels = "<<img_in.channels()<<std::endl;
-    //std::cout<<"img_in channels = "<<img_in.at<cv::Vec<uchar,1>>(3,1)<<std::endl;
+    cv::Mat img_in, img_out;
 
-    if(img_in.empty())
-    {
-        std::cout<<"Error Input!"<<std::endl;
-        return -1;
-    }
+    for (int i = 0; i < obj.size(); ++i) {
+        img_path = obj[i]["file"].asString();
+        img_in = cv::imread(data_path + img_path);
 
-    feature::lime* l;
-    l = new feature::lime(img_in);
-    img_out = l->lime_enhance(img_in);
+        if (img_in.empty()) {
+            std::cout<<"Error Input!"<<std::endl;
+            return -1;
+        }
 
-    cvNamedWindow("raw_picture",CV_WINDOW_NORMAL);
-    cvNamedWindow("img_lime",CV_WINDOW_NORMAL);
-    imshow("raw_picture",img_in);
-    imshow("img_lime",img_out);
-
-    cv::waitKey(0);
-
-    cv::imwrite("../test/data/3_lime.png",img_out);
+        unique_ptr<feature::lime> l(new feature::lime(img_in));
+        img_out = l->lime_enhance(img_in);
+        // cvNamedWindow("raw_picture",CV_WINDOW_NORMAL);
+        // cvNamedWindow("img_lime",CV_WINDOW_NORMAL);
+        // imshow("raw_picture",img_in);
+        // imshow("img_lime",img_out);
+        int last_dot_pos = img_path.rfind('.');
+        cout << data_path + img_path.substr(0, last_dot_pos) + ".lime" + img_path.substr(last_dot_pos) << endl;
+        cv::imwrite(data_path + img_path.substr(0, last_dot_pos) + ".lime" + img_path.substr(last_dot_pos), img_out);
+    }    
 
     return 0;
 }

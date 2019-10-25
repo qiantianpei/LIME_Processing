@@ -14,10 +14,10 @@ set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib )  
 
 find_package( OpenCV 3.1.0 REQUIRED )
+link_libraries( jsoncpp )
 
 include_directories( 
     ${OpenCV_INCLUDE_DIRS} 
-
 )
 
 
